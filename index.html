@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EdgeAttend</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400&family=Roboto+Condensed:wght@400&display=swap">
+
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f0f0f0;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    h1 {
+      font-family: 'Roboto', sans-serif;
+      color: #001f3f;
+      font-weight: bold;
+    }
+
+    h2 {
+      font-family: 'Roboto Condensed', sans-serif;
+      color: #001f3f;
+      margin-bottom: 20px;
+    }
+
+    #menu {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    label {
+      color: #555;
+    }
+
+    select, input, button {
+      border: 1px solid #ddd;
+      padding: 8px;
+      font-size: 14px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    select:hover, input:hover, button:hover {
+      border-color: #001f3f;
+    }
+
+    select {
+      cursor: pointer;
+      color: #001f3f;
+      background-color: #fff;
+    }
+
+    button {
+      cursor: pointer;
+      background-color: #001f3f;
+      color: #fff;
+      border: 1px solid #001f3f;
+      border-radius: 4px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #fff;
+      color: #001f3f;
+    }
+
+    #rollCallList {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+      width: 100%;
+      max-width: 600px;
+    }
+
+    .student {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+      transition: background-color 0.3s ease;
+    }
+
+    .student:nth-child(even) {
+      background-color: #f5f5f5;
+    }
+
+    .student:hover {
+      background-color: #ddd;
+    }
+
+    .actions button {
+      padding: 5px 10px;
+    }
+
+    .here {
+      color: green;
+      font-weight: bold;
+    }
+
+    .late {
+      color: orange;
+      font-weight: bold;
+    }
+
+    .absent {
+      color: red;
+      font-weight: bold;
+    }
+
+    #footer {
+      margin-top: auto;
+      text-align: center;
+      padding-top: 20px;
+    }
+
+    #darkModeToggle {
+      cursor: pointer;
+      background-color: #001f3f;
+      color: #fff;
+      border: 1px solid #001f3f;
+      border-radius: 4px;
+      padding: 8px;
+      margin-top: 10px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    #darkModeToggle:hover {
+      background-color: #fff;
+      color: #001f3f;
+    }
+
+    body.dark-mode {
+      background-color: #333;
+      color: #fff;
+    }
+
+    body.dark-mode select {
+      color: #fff;
+      background-color: #001f3f;
+    }
+
+    body.dark-mode button {
+      background-color: #001f3f;
+      color: #fff;
+      border: 1px solid #001f3f;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Edge<span style="color: #001f3f; font-weight: bold;">Attend</span></h1>
+<h2>Roll Call</h2>
+
+<div id="menu">
+  <label for="menuSelect">Menu:</label>
+  <select id="menuSelect">
+    <option value="add">Add Student</option>
+    <option value="remove">Remove Student</option>
+    <option value="percentages">View Percentages</option>
+    <option value="save">Save Roll</option>
+    <option value="load">Load Roll</option>
+    <option value="search">Search Student</option>
+  </select>
+  <input type="text" id="firstName" placeholder="Enter first name">
+  <input type="text" id="lastName" placeholder="Enter last name">
+  <input type="text" id="studentName" placeholder="Search student by name">
+  <button onclick="performMenuAction()">Go</button>
+</div>
+
+<ul id="rollCallList"></ul>
+
+<div id="footer">
+  <p>2023 Jesse Sookloll</p>
+  <button id="darkModeToggle" onclick="toggleDarkMode()">Toggle Dark Mode</button>
+</div>
+
+<script>
+  let students = [];
+  let darkMode = false;
+
+  function toggleDarkMode() {
+    darkMode = !darkMode;
+    updateDarkMode();
+  }
+
+  function updateDarkMode() {
+    const body = document.body;
+    const darkModeToggle = document.getElementById("darkModeToggle");
+
+    if (darkMode) {
+      body.classList.add("dark-mode");
+      darkModeToggle.style.backgroundColor = "#fff";
+      darkModeToggle.style.color = "#001f3f";
+    } else {
+      body.classList.remove("dark-mode");
+      darkModeToggle.style.backgroundColor = "#001f3f";
+      darkModeToggle.style.color = "#fff";
+    }
+  }
+
+  function performMenuAction() {
+    const menuSelect = document.getElementById("menuSelect");
+    const selectedOption = menuSelect.value;
+    const firstNameInput = document.getElementById("firstName");
+    const lastNameInput = document.getElementById("lastName");
+    const studentNameInput = document.getElementById("studentName");
+
+    const firstName = firstNameInput.value.trim();
+    const lastName = lastNameInput.value.trim();
+    const studentName = studentNameInput.value.trim();
+
+    if (selectedOption === "add") {
+      if (firstName !== "" && lastName !== "") {
+        students.push({ name: `${firstName} ${lastName}`, status: "here" });
+        firstNameInput.value = "";
+        lastNameInput.value = "";
+      } else {
+        alert("Please enter both first and last names.");
+      }
+    } else if (selectedOption === "remove") {
+      const studentIndex = students.findIndex(student => student.name === studentName);
+      if (studentIndex !== -1) {
+        students.splice(studentIndex, 1);
+        studentNameInput.value = "";
+      } else {
+        alert("Student not found.");
+      }
+    } else if (selectedOption === "percentages") {
+      displayAttendancePercentages();
+    } else if (selectedOption === "search") {
+      searchStudent(studentName);
+    } else if (selectedOption === "save") {
+      saveRoll();
+    } else if (selectedOption === "load") {
+      loadRoll();
+    }
+
+    updateRollCallList();
+  }
+
+  function updateStatus(index, status) {
+    students[index].status = status;
+    updateRollCallList();
+  }
+
+  function updateRollCallList() {
+    const rollCallList = document.getElementById("rollCallList");
+    rollCallList.innerHTML = "";
+
+    students.forEach((student, index) => {
+      const listItem = document.createElement("li");
+      listItem.classList.add("student");
+
+      if (student.status === "absent") {
+        listItem.classList.add("absent");
+      } else if (student.status === "late") {
+        listItem.classList.add("late");
+      } else if (student.status === "here") {
+        listItem.classList.add("here");
+      }
+
+      listItem.innerHTML = `
+        <div>${student.name}</div>
+        <div class="actions">
+          <button onclick="updateStatus(${index}, 'here')">Here</button>
+          <button onclick="updateStatus(${index}, 'late')">Late</button>
+          <button onclick="updateStatus(${index}, 'absent')">Absent</button>
+        </div>
+      `;
+
+      rollCallList.appendChild(listItem);
+    });
+  }
+
+  function displayAttendancePercentages() {
+    const percentages = students.map(student => {
+      const totalStatusCount = students.filter(s => s.name === student.name).length;
+      const hereCount = students.filter(s => s.name === student.name && s.status === "here").length;
+      const percentage = totalStatusCount > 0 ? (hereCount / totalStatusCount) * 100 : 0;
+      return `${student.name}: ${percentage.toFixed(2)}%`;
+    });
+
+    alert(percentages.join('\n'));
+  }
+
+  function searchStudent(studentName) {
+    const student = students.find(s => s.name === studentName);
+
+    if (student) {
+      alert(`Student ${student.name} found.`);
+    } else {
+      alert("Student not found.");
+    }
+  }
+
+  function saveRoll() {
+    const code = prompt("Enter a code to save your roll:");
+    if (code) {
+      localStorage.setItem(code, JSON.stringify(students));
+      alert("Roll saved!");
+    }
+  }
+
+  function loadRoll() {
+    const code = prompt("Enter your code to load the roll:");
+    if (code && localStorage.getItem(code)) {
+      students = JSON.parse(localStorage.getItem(code));
+      updateRollCallList();
+      alert("Roll loaded!");
+    } else {
+      alert("Invalid code or no data found.");
+    }
+  }
+
+  // Initial rendering
+  updateRollCallList();
+</script>
+
+</body>
+</html>
